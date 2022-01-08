@@ -11,18 +11,33 @@ class message extends Simulation{
     val config = ConfigFactory.load()
     val httpConf = http.baseUrl(config.getString("MESSAGE_BASE_URL"))
   
-    val scn = scenario("CRUD on Message")
 
-    .exec(http("Get Single Message")
+object Get {
+  val getByID = exec(http("Get Single Message")
       .get("/taqelah/messages/2"))
+}  
+
+object Create {
+  val newMessage = exec(http("Create New Message") // Here's an example of a POST request
+      .post("taqelah/messages/")
+       .body(StringBody("""{ "author": "Curry Blake", "message": "Speaking in tongue" }""")))
+}
+    
+    val scn = scenario("CRUD on Message")
+     .exec(Get.getByID)
     
    
+    val user = scenario("Normal_Users") // For user
+      .exec(Get.getByID)
+      .exec(Create.newMessage)
+
 
     setUp(
-    scn.inject(
-      nothingFor(5.seconds),
-      atOnceUsers(10),
-      rampUsersPerSec(150) to 200 during(1 minutes))
+       user.inject(atOnceUsers(10)),
+   // scn.inject(
+   //   nothingFor(5.seconds),
+   //   atOnceUsers(10),
+   //   rampUsersPerSec(150) to 200 during(1 minutes))
   ).protocols(httpConf.inferHtmlResources())
 
 

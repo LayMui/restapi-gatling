@@ -145,11 +145,6 @@ jobs:
           command: journalctl -u tomcat9.service
           background: true
 
-    
-      # set up our AWS credentials first
-      - aws-cli/install
-
-      - aws-cli/setup
 
       - run:
           name: Clean up report
@@ -162,12 +157,21 @@ jobs:
       - store_test_results:
           path: build
 
+         
+      # set up our AWS credentials first
+      - aws-cli/install
+
+      - aws-cli/setup
+
       - run:
           name: Copy test results to S3
           command: |
             aws s3 cp build/reports/gatling/* s3://gatling-report --recursive --acl public-read-write
           # setting always so this S3 copy is run whether tests failed or succeeded 
           when: always
+          environment:
+            # please update this to use the right region for you
+            AWS_REGION: ap-southeast-1
 
       # - <<: *slack-notify-failure
       # - <<: *slack-notify-success

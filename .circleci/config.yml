@@ -35,7 +35,7 @@ slack-fail-post-step: &slack-notify-failure
                   },
                   "style": "primary",
                   "value": "click_me_123",
-                  "url": "http://common-services-gatling-report-${ENVIRONMENT}.s3-website-ap-southeast-1.amazonaws.com"
+                  "url": "http://gatling-report.s3-website-ap-southeast-1.amazonaws.com"
                 }
               ]
             }
@@ -78,7 +78,7 @@ send-pass-notification: &slack-notify-success
                   },
                   "style": "primary",
                   "value": "click_me_123",
-                  "url": "http://common-services-gatling-report-${ENVIRONMENT}.s3-website-ap-southeast-1.amazonaws.com"
+                  "url": "http://gatling-report.s3-website-ap-southeast-1.amazonaws.com"
                 }
               ]
             }
@@ -149,7 +149,7 @@ jobs:
       - run:
           name: Copy test results to S3
           command: |
-            aws s3 cp build/reports/gatling/* s3://common-services-gatling-report-<< parameters.environment >> --recursive --acl public-read-write
+            aws s3 cp build/reports/gatling/* s3://gatling-report --recursive --acl public-read-write
           # setting always so this S3 copy is run whether tests failed or succeeded 
           when: always
 

@@ -153,8 +153,8 @@ jobs:
           # setting always so this S3 copy is run whether tests failed or succeeded 
           when: always
 
-      - <<: *slack-notify-failure
-      - <<: *slack-notify-success
+      # - <<: *slack-notify-failure
+      # - <<: *slack-notify-success
 
 workflows:
   run_stage_integration_tests: # trigger when run_stage_integration_tests param is true

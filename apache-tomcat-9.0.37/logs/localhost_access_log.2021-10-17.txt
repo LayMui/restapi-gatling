@@ -1,0 +1,11 @@
+127.0.0.1 - - [17/Oct/2021:21:03:08 +0800] "POST /webapp/taqelah/messages/ HTTP/1.1" 201 104
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:34 +0800] "GET /webapp HTTP/1.1" 302 -
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:35 +0800] "GET /webapp/ HTTP/1.1" 200 240
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:36 +0800] "GET /favicon.ico HTTP/1.1" 200 21630
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:45 +0800] "GET /webapp/taqelah/myresource HTTP/1.1" 200 7
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:55 +0800] "GET /webapp/taqelah/myresource HTTP/1.1" 200 7
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:03:59 +0800] "GET /webapp/taqelah/ HTTP/1.1" 404 713
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:04:20 +0800] "GET /webapp/taqelah/messages/ HTTP/1.1" 200 474
+127.0.0.1 - - [17/Oct/2021:21:06:09 +0800] "POST /webapp/taqelah/messages/ HTTP/1.1" 201 103
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:06:15 +0800] "GET /webapp/taqelah/messages/ HTTP/1.1" 200 616
+0:0:0:0:0:0:0:1 - - [17/Oct/2021:21:06:15 +0800] "GET /favicon.ico HTTP/1.1" 200 21630

@@ -1,0 +1,210 @@
+version: 2.1
+
+slack-fail-post-step: &slack-notify-failure
+  slack/notify:
+    custom: |
+      {
+        "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Load Test As Code ❌ *Failure* on ${ENVIRONMENT}\n Repo: ${CIRCLE_PROJECT_REPONAME} \nBuild Number: #${CIRCLE_BUILD_NUM}\n Branch: ${CIRCLE_BRANCH}\nby ${CIRCLE_USERNAME}"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "View Job"
+                  },
+                  "style": "primary",
+                  "value": "click_me_123",
+                  "url": "${CIRCLE_BUILD_URL}"
+                },
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "View Result"
+                  },
+                  "style": "primary",
+                  "value": "click_me_123",
+                  "url": "http://common-services-gatling-report-${ENVIRONMENT}.s3-website-ap-southeast-1.amazonaws.com"
+                }
+              ]
+            }
+        ]
+      }
+    event: fail
+
+send-pass-notification: &slack-notify-success
+  slack/notify:
+    custom: |
+      {
+        "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Load Test As Code ✅ *Success* ${ENVIRONMENT}\n Repo: ${CIRCLE_PROJECT_REPONAME} \nBuild Number: #${CIRCLE_BUILD_NUM}\n Branch: ${CIRCLE_BRANCH}\nby ${CIRCLE_USERNAME}"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                 {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "View Job"
+                  },
+                  "style": "primary",
+                  "value": "click_me_123",
+                  "url": "${CIRCLE_BUILD_URL}"
+                },
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "View Result"
+                  },
+                  "style": "primary",
+                  "value": "click_me_123",
+                  "url": "http://common-services-gatling-report-${ENVIRONMENT}.s3-website-ap-southeast-1.amazonaws.com"
+                }
+              ]
+            }
+        ]
+      }
+    event: pass
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0.3
+  build-tools: circleci/build-tools@3.0.0
+  slack: circleci/slack@4.4.4
+  jira: circleci/jira@1.3.1
+
+parameters:
+  run_stage_integration_tests:
+    type: boolean
+    default: false
+
+  run_preprod_integration_tests:
+    type: boolean
+    default: false
+
+  build_number:
+    type: integer
+    default: 0
+
+  tag_name:
+    type: string
+    default: ''
+
+jobs:
+  integrationtest:
+    docker:
+      # CircleCI's next-gen convenience image for openJDK + Node installed
+      - image: cimg/openjdk:11.0-node
+
+    parameters:
+      environment:
+        type: enum
+        enum: ['stage', 'preprod']
+        default: 'stage'
+      service:
+        type: enum
+        enum: ['farmer.FarmerTests' ]
+        default: 'farmer.FarmerTests' 
+    environment:
+      ENVIRONMENT: << parameters.environment >>
+   
+    resource_class: medium+
+    steps:
+      - build-tools/install-ci-tools
+      - checkout
+    
+      # set up our AWS credentials first
+      - aws-cli/setup
+
+      - run:
+          name: Clean up report
+          command: rm -fr ./build/reports/gatling/*
+
+      - run:
+          name: Run test << parameters.service >> on << parameters.environment >> 
+          command: ./gradlew gatlingRun-<< parameters.service >>
+
+      - store_test_results:
+          path: build
+
+      - run:
+          name: Copy test results to S3
+          command: |
+            aws s3 cp build/reports/gatling/* s3://common-services-gatling-report-<< parameters.environment >> --recursive --acl public-read-write
+          # setting always so this S3 copy is run whether tests failed or succeeded 
+          when: always
+
+      - <<: *slack-notify-failure
+      - <<: *slack-notify-success
+
+workflows:
+  run_stage_integration_tests: # trigger when run_stage_integration_tests param is true
+    when: << pipeline.parameters.run_stage_integration_tests >>
+    jobs:
+      - integrationtest:
+          environment: stage
+          context:
+            - CIRCLE_CI_AWS_IAM_APAC_EKS_STAGE
+            - CIRCLE_CI_SLACK_FARMCHERRY
+
+  run_preprod_integration_tests: # trigger when run_preprod_integration_tests param is true
+    when: << pipeline.parameters.run_preprod_integration_tests >>
+    jobs:
+      - integrationtest:
+          environment: preprod
+          context:
+            - CIRCLE_CI_AWS_IAM_APAC_EKS_PRODUCTION
+            - CIRCLE_CI_SLACK_FARMCHERRY
+
+  run_tests: # trigger on new commit in master branch or branch start with circleci-
+    when:
+      and:
+        - not: << pipeline.parameters.run_stage_integration_tests >>
+        - not: << pipeline.parameters.run_preprod_integration_tests >>
+    jobs:
+      - integrationtest:
+          name: 'integration test on stage'
+          environment: stage
+          context:
+            - CIRCLE_CI_AWS_IAM_APAC_EKS_STAGE
+            - CIRCLE_CI_SLACK_FARMCHERRY
+          filters:
+            branches:
+              only:
+                - master
+                - /circleci-.*/
+                - /CHRR-.*/
+      - integrationtest:
+          name: 'integration test on preprod'
+          environment: preprod
+          context:
+            - CIRCLE_CI_AWS_IAM_APAC_EKS_PRODUCTION
+            - CIRCLE_CI_SLACK_FARMCHERRY
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - integration test on stage
+          post-steps:
+            - jira/notify
+           

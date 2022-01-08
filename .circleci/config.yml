@@ -122,8 +122,8 @@ jobs:
         default: 'stage'
       service:
         type: enum
-        enum: ['farmer.FarmerTests' ]
-        default: 'farmer.FarmerTests' 
+        enum: ['restapi.message' ]
+        default: 'restapi.message' 
     environment:
       ENVIRONMENT: << parameters.environment >>
    
@@ -163,8 +163,7 @@ workflows:
       - integrationtest:
           environment: stage
           context:
-            - CIRCLE_CI_AWS_IAM_APAC_EKS_STAGE
-            - CIRCLE_CI_SLACK_FARMCHERRY
+            - CIRCLE_CI_AWS_IAM
 
   run_preprod_integration_tests: # trigger when run_preprod_integration_tests param is true
     when: << pipeline.parameters.run_preprod_integration_tests >>
@@ -172,8 +171,7 @@ workflows:
       - integrationtest:
           environment: preprod
           context:
-            - CIRCLE_CI_AWS_IAM_APAC_EKS_PRODUCTION
-            - CIRCLE_CI_SLACK_FARMCHERRY
+            - CIRCLE_CI_AWS_IAM
 
   run_tests: # trigger on new commit in master branch or branch start with circleci-
     when:
@@ -185,20 +183,18 @@ workflows:
           name: 'integration test on stage'
           environment: stage
           context:
-            - CIRCLE_CI_AWS_IAM_APAC_EKS_STAGE
-            - CIRCLE_CI_SLACK_FARMCHERRY
+            - CIRCLE_CI_AWS_IAM
           filters:
             branches:
               only:
                 - master
                 - /circleci-.*/
-                - /CHRR-.*/
+               
       - integrationtest:
           name: 'integration test on preprod'
           environment: preprod
           context:
-            - CIRCLE_CI_AWS_IAM_APAC_EKS_PRODUCTION
-            - CIRCLE_CI_SLACK_FARMCHERRY
+            - CIRCLE_CI_AWS_IAM
           filters:
             branches:
               only:

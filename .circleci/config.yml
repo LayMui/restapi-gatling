@@ -147,6 +147,8 @@ jobs:
 
     
       # set up our AWS credentials first
+      - aws-cli/install
+
       - aws-cli/setup
 
       - run:

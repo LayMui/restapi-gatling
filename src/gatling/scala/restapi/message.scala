@@ -22,17 +22,17 @@ object Get {
 
 object Create {
 
-  val messageFeeder = csv("message.csv").random  
+  
 
   val newMessage = exec(http("Create New Message") // Here's an example of a POST request
        .post("/taqelah/messages/")
-       .pause(1)
-       .feed(messageFeeder)
        .body(StringBody("""{ "author": "CB", "message": "Speaking in tongue" }""")))
 }
     
+    val messageFeeder = csv("message.csv").random  
     val scn = scenario("CRUD on Message")
      .exec(Get.getByID)
+     .feed(messageFeeder)
     
    
     val user = scenario("Normal_Users") // For user

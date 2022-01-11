@@ -7,9 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-// import io.gatling.http.config.HttpProtocolBuilder.toHttpProtocol
-// import io.gatling.http.request.builder.HttpRequestBuilder.toActionBuilder
-
 class message extends Simulation{
     val config = ConfigFactory.load()
     val httpConf = http.baseUrl(config.getString("MESSAGE_BASE_URL"))
@@ -20,10 +17,7 @@ object Get {
       .get("/taqelah/messages/2"))
 }  
 
-object Create {
-
-  
-
+object Create {  
   val newMessage = exec(http("Create New Message") // Here's an example of a POST request
        .post("/taqelah/messages/")
        .body(StringBody("""{ "author": "CB", "message": "Speaking in tongue" }""")))
@@ -37,16 +31,17 @@ object Create {
    
     val user = scenario("Normal_Users") // For user
       .exec(Get.getByID)
-      .exec(Create.newMessage)
+    //  .exec(Create.newMessage)
 
 
     setUp(
-       user.inject(atOnceUsers(10)),
+       user.inject(atOnceUsers(1)),
    // scn.inject(
    //   nothingFor(5.seconds),
    //   atOnceUsers(10),
    //   rampUsersPerSec(150) to 200 during(1 minutes))
-  ).protocols(httpConf.inferHtmlResources())
+  //).protocols(httpConf.inferHtmlResources())
+    ).protocols(httpConf)
 
 
 }

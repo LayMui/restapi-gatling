@@ -26,12 +26,13 @@ object Create {
     val messageFeeder = csv("message.csv").random  
     val scn = scenario("CRUD on Message")
      .exec(Get.getByID)
-     .feed(messageFeeder)
+     
     
    
     val user = scenario("Normal_Users") // For user
-      .exec(Get.getByID)
-    //  .exec(Create.newMessage)
+     // .exec(Get.getByID)
+      .exec(Create.newMessage)
+      .feed(messageFeeder)
 
 
     setUp(
@@ -40,8 +41,8 @@ object Create {
    //   nothingFor(5.seconds),
    //   atOnceUsers(10),
    //   rampUsersPerSec(150) to 200 during(1 minutes))
-  //).protocols(httpConf.inferHtmlResources())
-    ).protocols(httpConf)
+  ).protocols(httpConf.inferHtmlResources())
+  //  ).protocols(httpConf)
 
 
 }

@@ -9,7 +9,9 @@ import scala.language.postfixOps
 
 class message extends Simulation{
     val config = ConfigFactory.load()
-    val httpConf = http.baseUrl(config.getString("MESSAGE_BASE_URL"))
+    val httpConf = http
+    .baseUrl(config.getString("MESSAGE_BASE_URL"))
+    .header("Content-Type", "application/json")
   
 
 object Get {
@@ -20,7 +22,7 @@ object Get {
 object Create {  
   val newMessage = exec(http("Create New Message") // Here's an example of a POST request
        .post("/taqelah/messages/")
-       .body(StringBody("""{ "author": "CB", "message": "Speaking in tongue" }""")))
+       .body(StringBody("""{ "author": ${author}, "message": $(message) }""")))
 }
     
     val messageFeeder = csv("message.csv").random  
@@ -30,7 +32,7 @@ object Create {
     
    
     val user = scenario("Normal_Users") // For user
-     // .exec(Get.getByID)
+      .exec(Get.getByID)
       .exec(Create.newMessage)
       .feed(messageFeeder)
 
